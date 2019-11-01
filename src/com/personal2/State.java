@@ -3,12 +3,12 @@ package com.personal2;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
-public class Pair implements Comparable<Pair> {
+public class State implements Comparable<State> {
     private Matrix matrix;
     private Integer distance;
     private Integer level;
 
-    public Pair(Matrix matrix, int level) {
+    public State(Matrix matrix, int level) {
         super();
         this.matrix = matrix;
         this.level = level;
@@ -32,10 +32,10 @@ public class Pair implements Comparable<Pair> {
         if (o == this) {
             return true;
         }
-        if (!(o instanceof Pair)) {
+        if (!(o instanceof State)) {
             return false;
         }
-        Pair other = (Pair) o;
+        State other = (State) o;
         if (other != null) {
             return matrix.equals(other.getMatrix());
         }
@@ -43,7 +43,7 @@ public class Pair implements Comparable<Pair> {
     }
 
     @Override
-    public int compareTo(Pair other) {
+    public int compareTo(State other) {
         if (this.getDistance() + level > other.getDistance() + other.level) {
             return 1;
         } else if (this.getDistance() < other.getDistance() + other.level) {
@@ -53,8 +53,8 @@ public class Pair implements Comparable<Pair> {
         }
     }
 
-    public ArrayList<Pair> generateNeighbors(int level) {
-        return matrix.generateNeighbors().stream().map(m -> new Pair(m, level)).collect(
+    public ArrayList<State> generateNeighbors(int level) {
+        return matrix.generateNeighbors().stream().map(m -> new State(m, level)).collect(
                 Collectors.toCollection(ArrayList::new));
     }
 

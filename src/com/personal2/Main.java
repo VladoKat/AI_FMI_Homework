@@ -9,14 +9,14 @@ public class Main {
         int[][] startMatrixArr = {{6, 5, 3}, {2, 4, 8}, {7, 0, 1}};
 
         Matrix startMatrix = new Matrix(startMatrixArr);
-        PriorityQueue<Pair> states = new PriorityQueue<>();
-        ArrayList<Pair> visited = new ArrayList<>();
-        states.add(new Pair(startMatrix, 0));
+        PriorityQueue<State> states = new PriorityQueue<>();
+        ArrayList<State> visited = new ArrayList<>();
+        states.add(new State(startMatrix, 0));
 
         int level = 0;
         boolean foundEnd = false;
         while (!states.isEmpty() && !foundEnd) {
-            Pair current = states.remove();
+            State current = states.remove();
             if (current.getDistance() == 0) {
                 level = current.getLevel();
                 foundEnd = true;
@@ -29,11 +29,11 @@ public class Main {
         System.out.println(level);
     }
 
-    private static void addNeighbors(Pair current, int level, PriorityQueue<Pair> states, ArrayList<Pair> visited) {
+    private static void addNeighbors(State current, int level, PriorityQueue<State> states, ArrayList<State> visited) {
         generateNeighbors(current, level).stream().filter(n -> !visited.contains(n)).forEach(n -> states.add(n));
     }
 
-    private static ArrayList<Pair> generateNeighbors(Pair current, int level) {
+    private static ArrayList<State> generateNeighbors(State current, int level) {
         return current.generateNeighbors(level);
     }
 }
