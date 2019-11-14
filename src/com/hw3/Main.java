@@ -1,11 +1,12 @@
 package com.hw3;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.*;
 
 public class Main {
     final static int MAX_HEROS_CAPACITY = 100;
     final static int NUM_ITEMS = 24;
+    final static int TOTAL_GOLD = 5000;
+    final static int MAX_ITER = 100;
     final static Integer[][] costValueArr = {
             {100, 150},
             {120, 40},
@@ -33,28 +34,70 @@ public class Main {
             {2000, 150}
     };
     public static void main(String[] args){
-        int totalGold = 5000;
         int heroPower = 0;
-
 
         LinkedHashMap<Integer, Integer> costValueMap = new LinkedHashMap<>(24);
         for (Integer arr[] : costValueArr) {
             costValueMap.put(arr[0], arr[1]);
         }
-        ArrayList<Integer> heroes = generateHeros(costValueMap);
-        //TODO: while loop with selection, crossing, mutation
+        ArrayList<Integer> heroes = generateHeroes(costValueMap);
+        System.out.println(heroes.size());
+        select(heroes, costValueMap);
+
+//        for(int i = 0; i < MAX_ITER; i++){
+//            select(heroes, costValueMap);
+//            cross(heroes);
+//            mutate(heroes);
+//        }
 
     }
-    private static ArrayList<Integer> generateHeros(LinkedHashMap<Integer, Integer> map){
+    private static ArrayList<Integer> generateHeroes(LinkedHashMap<Integer, Integer> map){
         ArrayList<Integer> result = new ArrayList<>();
         for(int i = 0; i < MAX_HEROS_CAPACITY; i++) {
-            result.add(generateSingleHero());
+            result.add(generateSingleHero(map));
         }
         return result;
     }
 
-    private static Integer generateSingleHero() {
-        //TODO: generate bitmask (randomly) for a buying strategy
-        return 0;
+    private static Integer generateSingleHero(LinkedHashMap<Integer, Integer> map) {
+        int bitmask = 0;
+        int sum = 0;
+        Set<Integer> keySet = map.keySet();
+        Random r = new Random();
+        for (Integer i = 0; i < NUM_ITEMS && keySet.iterator().hasNext(); i++) {
+            Integer key = keySet.iterator().next();
+            if(r.nextDouble() >= 0.5 && sum + key <= TOTAL_GOLD){
+                bitmask += 1 << i;
+                sum += key;
+            }
+        }
+        return bitmask;
+    }
+
+    private static void select(ArrayList<Integer> heroes, LinkedHashMap<Integer, Integer> costValueMap){
+        SortedMap<Integer, Integer> heroPower = new TreeMap<>();
+        System.out.println(heroes.size());
+        for (Integer hero : heroes) {
+            heroPower.put(fitness(hero, costValueMap), hero);
+        }
+        System.out.println(heroPower.size());
+        for (SortedMap.Entry e:
+             heroPower.entrySet()) {
+            System.out.println(e.getKey() + " " + e.getValue());
+        }
+    }
+
+    private static Integer fitness(Integer hero, LinkedHashMap<Integer, Integer> costValueMap){
+        Integer result = 0;
+        Set<Integer> keySet = costValueMap.keySet();
+        while(hero != 0 || !keySet.iterator().hasNext()){
+            int bit = hero % 2;
+            Integer key = keySet.iterator().next();
+            if(bit == 1){
+                result += costValueMap.get(key);
+            }
+            hero /= 2;
+        }
+        return result;
     }
 }
