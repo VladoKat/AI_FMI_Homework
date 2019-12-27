@@ -5,9 +5,9 @@ import javafx.util.Pair;
 import java.util.*;
 
 public class Main {
-    final static int MAX_HEROES_CAPACITY = 100;
-    private static final int SELECTION_FACTOR = 30;
-    private static final int MUTATION_FACTOR = 5;
+    final static int MAX_HEROES_CAPACITY = 1000;
+    private static final int SELECTION_FACTOR = 300;
+    private static final int MUTATION_FACTOR = 50;
     final static int NUM_ITEMS = 24;
     final static int TOTAL_GOLD = 5000;
     final static int MAX_ITER = 100;
@@ -44,21 +44,12 @@ public class Main {
             costValueMap.put(arr[0], arr[1]);
         }
         ArrayList<Pair<Integer, Integer>> heroPower = generateHeroPower(costValueMap);
-//        System.out.println(heroPower.size());
         for (int i = 0; i < MAX_ITER; i++) {
-            heroPower.sort((o1, o2) -> {
-                if (o1.getKey() > o2.getKey()) {
-                    return -1;
-                }
-                if (o1.getKey() == o2.getKey()) {
-                    return 0;
-                }
-                return 1;
-            });
+            heroPower.sort(Comparator.comparingInt(Pair<Integer, Integer>::getKey).reversed());
             cross(heroPower, costValueMap);
-//            mutate(heroPower, costValueMap);
+            mutate(heroPower, costValueMap);
         }
-        heroPower.sort(Comparator.comparingInt(Pair::getKey));
+        heroPower.sort(Comparator.comparingInt(Pair<Integer, Integer>::getKey).reversed());
         System.out.println(heroPower.get(0).getKey() + " " + heroPower.get(0).getValue());
     }
 
@@ -71,8 +62,18 @@ public class Main {
     }
 
     private static Pair<Integer, Integer> mutateSingle(Pair<Integer, Integer> singleHeroPower, LinkedHashMap<Integer, Integer> costValueMap) {
-        return singleHeroPower;
-        //TODO: see how mutation work
+        Random r = new Random();
+        int genomIndex = r.nextInt(NUM_ITEMS);
+        Integer gene = singleHeroPower.getValue();
+        Integer number = ((Double) Math.pow(2,genomIndex)).intValue();
+        if((number & gene) != number) {
+            gene |= (1 << genomIndex);
+        } else {
+            gene &= (0 << genomIndex);
+        }
+        Integer power = getPower(gene, costValueMap);
+        Pair<Integer, Integer> newHeroPower = new Pair(power, gene);
+        return newHeroPower;
     }
 
 
@@ -81,10 +82,11 @@ public class Main {
         int sum = 0;
         Set<Integer> keySet = map.keySet();
         Random r = new Random();
-        for (Integer i = 0; i < NUM_ITEMS && keySet.iterator().hasNext(); i++) {
-            Integer key = keySet.iterator().next();
+        Iterator it = keySet.iterator();
+        for (Integer i = 0; i < NUM_ITEMS && it.hasNext(); i++) {
+            Integer key = (Integer) it.next();
             if (r.nextDouble() >= 0.5 && sum + key <= TOTAL_GOLD) {
-                bitmask += 1 << i;
+                bitmask += (1 << i);
                 sum += key;
             }
         }
@@ -96,9 +98,7 @@ public class Main {
             Pair<Integer, Integer> singleHeroPower = crossTwo(heroesPowers.get(i), heroesPowers.get(i + 1), costValueMap);
             heroesPowers.set(heroesPowers.size() - SELECTION_FACTOR + i / 2, singleHeroPower);
         }
-        System.out.println(heroesPowers.size());
-        //TODO: see why Comparison method violates its general contract! (hint: print the array. after n-th iteration it fails)
-        heroesPowers.sort(Comparator.comparingInt(Pair::getKey));
+        heroesPowers.sort(Comparator.comparingInt(Pair<Integer, Integer>::getKey).reversed());
     }
 
 
@@ -109,9 +109,9 @@ public class Main {
         Random r = new Random();
         for (int i = 0; i < NUM_ITEMS; i++) {
             if (r.nextDouble() >= 0.5) {
-                heroGeneResult += heroGene1 % 2;
+                heroGeneResult += ((Double)((heroGene1 % 2) * Math.pow(2, i))).intValue();
             } else {
-                heroGeneResult += heroGene2 % 2;
+                heroGeneResult += ((Double)((heroGene2 % 2) * Math.pow(2, i))).intValue();
             }
             heroGene1 /= 2;
             heroGene2 /= 2;
@@ -123,8 +123,9 @@ public class Main {
     private static Integer getPower(Integer heroGene, LinkedHashMap<Integer, Integer> costValueMap) {
         Integer cost = 0;
         Integer power = 0;
+        Iterator it = costValueMap.entrySet().iterator();
         while (heroGene != 0) {
-            Map.Entry<Integer, Integer> singleCostValue = costValueMap.entrySet().iterator().next();
+            Map.Entry<Integer, Integer> singleCostValue = (Map.Entry<Integer, Integer>) it.next();
             Integer currItemCost = singleCostValue.getKey();
             Integer currItemPower = singleCostValue.getValue();
             if (heroGene % 2 == 1) {
@@ -143,24 +144,17 @@ public class Main {
         ArrayList<Pair<Integer, Integer>> heroPower = new ArrayList<>();
         for (int i = 0; i < MAX_HEROES_CAPACITY; i++) {
             Integer hero = generateSingleHero(costValueMap);
-            Integer fitness = fitness(hero, costValueMap);
-//            System.out.println(fitness);
+            Integer fitness = getPower(hero, costValueMap);
             heroPower.add(new Pair<>(fitness, hero));
         }
         return heroPower;
     }
 
-    private static Integer fitness(Integer hero, LinkedHashMap<Integer, Integer> costValueMap) {
-        Integer result = 0;
-        Set<Integer> keySet = costValueMap.keySet();
-        while (hero != 0) {
-            int bit = hero % 2;
-            Integer key = keySet.iterator().next();
-            if (bit == 1) {
-                result += costValueMap.get(key);
-            }
-            hero /= 2;
+
+
+    private static void printArr(List arr) {
+        for (int i = 0; i < arr.size(); i++) {
+            System.out.println(arr.get(i));
         }
-        return result;
     }
 }
