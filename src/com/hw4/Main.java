@@ -75,8 +75,7 @@ public class Main {
     // This is the minimax function. It considers all
     // the possible ways the game can go and returns
     // the value of the board
-    static int minimax(char board[][],
-                       int depth, Boolean isMax, int alpha, int beta) {
+    static int minimax(char board[][], Boolean isMax, int alpha, int beta) {
         int score = evaluate(board);
 
         // If Maximizer has won the game
@@ -107,14 +106,14 @@ public class Main {
 
                     // Call minimax recursively and choose
                     // value depending on whose move it is
-                    best = isMax ? Math.max(best, minimax(board, depth + 1, false, alpha, beta))
-                            : Math.min(best, minimax(board, depth + 1, true, alpha, beta));
-                    if(isMax){
+                    best = isMax ? Math.max(best, minimax(board, false, alpha, beta))
+                            : Math.min(best, minimax(board,true, alpha, beta));
+                    if (isMax) {
                         alpha = Math.max(alpha, best);
                     } else {
                         beta = Math.min(beta, best);
                     }
-                    if(beta <= alpha){
+                    if (beta <= alpha) {
                         //Undo the move
                         board[i][j] = EMPTY;
                         return best;
@@ -146,7 +145,7 @@ public class Main {
 
                     // compute evaluation function for this
                     // move.
-                    int moveVal = minimax(board, 0, !isMax, MIN, MAX);
+                    int moveVal = minimax(board, !isMax, MIN, MAX);
 
                     // Undo the move
                     board[i][j] = EMPTY;
